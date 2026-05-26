@@ -60,13 +60,48 @@ def print_stats(headers: list, data: np.ndarray) -> None:
         if n_missing / len(col_data) > 0.05:         # ⚠ warning if >5% missing
             print(f"  ⚠  Warning: {col} has {n_missing/len(col_data)*100:.1f}% missing values")
 
+def clean_data(headers: list, data: np.ndarray) -> tuple[list[str], np.ndarray]:
+    data = data.copy()
+    headers = headers.copy()
+
+    # STEP 1 - drop index column
+    data = np.delete(data, 0, axis=1)
+    headers = headers[1:]
+    print("✔ Dropped index column")
+
+    # STEP 2 - impute missing values
+    for i, col in enumerate(headers):
+        col_data = data[:, i]
+        if np.any(np.isnan(col_data)):
+            n_missing = int(np.sum(np.isnan(col_data)))
+            median = np.nanmedian(col_data)
+            data[:, i] = np.where(np.isnan(col_data), median, col_data)
+            print(f"✔ Imputed {col:<40} ({n_missing} values)")
+
+     # STEP 3 - clip outliers
+    for i, col in enumerate(headers):
+        col_data = data[:, i]
+        Q1 = np.nanpercentile(col_data, 25)
+        Q3 = np.nanpercentile(col_data, 75)
+        IQR = Q3 - Q1
+        if IQR > 0:                                    # ✅ skip binary/zero columns
+            lower = Q1 - 1.5 * IQR
+            upper = Q3 + 1.5 * IQR
+            data[:, i] = np.clip(col_data, lower, upper)
+            print(f"✔ Clipped outliers in {col}")
+        else:
+            print(f"  Skipped clipping for {col} (IQR = 0)")
+    return headers, data
+             
+
 if __name__ == "__main__":
     filepath = "data/raw/give_me_some_credit.csv"
     
-    headers, data = load_csv(r"C:\Users\Lenovo\Desktop\HOPE\creditsense\creditsense\data\raw\cs-training.csv")
-    print_csv(headers, data)
+    headers, data = load_csv(r"C:\Users\Lenovo\Desktop\HOPE\creditsense\data\raw\cs-training.csv")
+    clean_headers, clean_data = clean_data(headers, data)
+    print_csv(clean_headers, clean_data)
     print()
-    print_stats(headers, data)
+    print_stats(clean_headers, clean_data)
 
 
     
