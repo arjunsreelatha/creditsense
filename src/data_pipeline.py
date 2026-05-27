@@ -92,16 +92,26 @@ def clean_data(headers: list, data: np.ndarray) -> tuple[list[str], np.ndarray]:
         else:
             print(f"  Skipped clipping for {col} (IQR = 0)")
     return headers, data
-             
+
+def minmax_normalize(data: np.ndarray) -> np.ndarray:
+    return (data - np.nanmin(data, axis=0)) / (np.nanmax(data, axis=0) - np.nanmin(data, axis=0) + 1e-8)
+
+def zscore(data:np.ndarray) -> np.ndarray:
+    mean = np.nanmean(data, axis=0)
+    std = np.nanstd(data, axis=0)
+    return (data - mean) / (std + 1e-8)
+
 
 if __name__ == "__main__":
-    filepath = "data/raw/give_me_some_credit.csv"
-    
     headers, data = load_csv(r"C:\Users\Lenovo\Desktop\HOPE\creditsense\data\raw\cs-training.csv")
-    clean_headers, clean_data = clean_data(headers, data)
-    print_csv(clean_headers, clean_data)
-    print()
-    print_stats(clean_headers, clean_data)
+    headers, data = clean_data(headers, data)
 
+    print(f"Original MonthlyIncome range : {data[:, 5].min():.2f} to {data[:, 5].max():.2f}")
+    
+    minmax_data = minmax_normalize(data)
+    print(f"After min-max               : {minmax_data[:, 5].min():.2f} to {minmax_data[:, 5].max():.2f}")
+    
+    zscore_data = zscore(data)
+    print(f"After zscore                : {zscore_data[:, 5].min():.2f} to {zscore_data[:, 5].max():.2f}")
 
     
