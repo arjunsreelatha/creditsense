@@ -101,17 +101,50 @@ def zscore(data:np.ndarray) -> np.ndarray:
     std = np.nanstd(data, axis=0)
     return (data - mean) / (std + 1e-8)
 
+def analyze_class_imbalance(headers: list, data: np.ndarray) -> None:
+    target = data[:,0]
+    class_0 = np.sum(target == 0)
+    class_1 = np.sum(target == 1)
+    total = len(target)
+    pct_0 = class_0 / total * 100
+    pct_1 = class_1 / total * 100
+    ratio = class_0 / class_1 if class_1 > 0 else float('inf')
+    print("="*45)
+    print("CLASS IMBALANCE ANALYSIS")
+    print("="*45)
+    print(f"Class 0 (No Default): {class_0} ({pct_0:.1f}%)")
+    print(f"Class 1 (Default)   : {class_1} ({pct_1:.1f}%)")
+    print(f"Imbalance Ratio     : {ratio:.2f} (Class 0 : Class 1)")
+    if ratio > 5:
+        print("⚠ Warning: Significant class imbalance detected!")
+
+def oversample_minority(data:np.ndarray) -> np.ndarray:
+    majortiy = data[data[:,0] == 0]
+    minority = data[data[:,0] == 1]
+    n_needed = len(majortiy) - len(minority)
+    if n_needed > 0:
+        indices = np.random.choice(len(minority), size=n_needed, replace=True)
+        oversampled_minority = minority[indices]
+        return np.vstack((data, oversampled_minority))
+    else:
+        return data
+    
+
+
 
 if __name__ == "__main__":
     headers, data = load_csv(r"C:\Users\Lenovo\Desktop\HOPE\creditsense\data\raw\cs-training.csv")
     headers, data = clean_data(headers, data)
+    analyze_class_imbalance(headers, data)      # ✅ added
 
     print(f"Original MonthlyIncome range : {data[:, 5].min():.2f} to {data[:, 5].max():.2f}")
-    
     minmax_data = minmax_normalize(data)
     print(f"After min-max               : {minmax_data[:, 5].min():.2f} to {minmax_data[:, 5].max():.2f}")
-    
     zscore_data = zscore(data)
     print(f"After zscore                : {zscore_data[:, 5].min():.2f} to {zscore_data[:, 5].max():.2f}")
 
-    
+    balanced = oversample_minority(data)
+    print(f"\nAfter oversampling:")           # ✅ indented
+    print(f"  Class 0 : {int(np.sum(balanced[:, 0] == 0))}")
+    print(f"  Class 1 : {int(np.sum(balanced[:, 0] == 1))}")
+    print(f"  Total   : {len(balanced)}")
