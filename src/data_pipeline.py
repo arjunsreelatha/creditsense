@@ -1,8 +1,11 @@
+
+
 import numpy as np
 import csv
-import os
+import time
 
 def load_csv(filepath:str) -> tuple[list[str], np.ndarray]:
+    """Loads a CSV file and returns headers and data as a numpy array."""
     headers = []
     rows = []
     with open(filepath,'r') as file:
@@ -25,9 +28,7 @@ def load_csv(filepath:str) -> tuple[list[str], np.ndarray]:
 
 def print_csv(header: list, data:np.ndarray) -> None:
     n_rows,n_cols = data.shape
-
-    
-
+    """ Prints dataset overview: number of rows/columns and column names with types."""
     print("="*45)
     print("DATASET")
     print("="*45)
@@ -40,6 +41,7 @@ def print_csv(header: list, data:np.ndarray) -> None:
         print(f"{i:<5}{col:<30} float")
 
 def print_stats(headers: list, data: np.ndarray) -> None:
+    """Prints statistics for each feature: count, missing, min, max, mean, std."""
     print("=" * 75)
     print("FEATURE STATISTICS")
     print("=" * 75)
@@ -61,6 +63,7 @@ def print_stats(headers: list, data: np.ndarray) -> None:
             print(f"  ⚠  Warning: {col} has {n_missing/len(col_data)*100:.1f}% missing values")
 
 def clean_data(headers: list, data: np.ndarray) -> tuple[list[str], np.ndarray]:
+    """Cleans the dataset by dropping index, imputing missing values, and clipping outliers."""
     data = data.copy()
     headers = headers.copy()
 
@@ -94,14 +97,17 @@ def clean_data(headers: list, data: np.ndarray) -> tuple[list[str], np.ndarray]:
     return headers, data
 
 def minmax_normalize(data: np.ndarray) -> np.ndarray:
+    """Applies min-max normalization to scale features to [0, 1]."""
     return (data - np.nanmin(data, axis=0)) / (np.nanmax(data, axis=0) - np.nanmin(data, axis=0) + 1e-8)
 
-def zscore(data:np.ndarray) -> np.ndarray:
+def z_score(data:np.ndarray) -> np.ndarray:
+    """Applies z-score normalization to standardize features to mean=0 and std=1."""
     mean = np.nanmean(data, axis=0)
     std = np.nanstd(data, axis=0)
     return (data - mean) / (std + 1e-8)
 
 def analyze_class_imbalance(headers: list, data: np.ndarray) -> None:
+    """Analyzes class imbalance by counting class distribution and calculating imbalance ratio."""
     target = data[:,0]
     class_0 = np.sum(target == 0)
     class_1 = np.sum(target == 1)
@@ -119,9 +125,10 @@ def analyze_class_imbalance(headers: list, data: np.ndarray) -> None:
         print("⚠ Warning: Significant class imbalance detected!")
 
 def oversample_minority(data:np.ndarray) -> np.ndarray:
-    majortiy = data[data[:,0] == 0]
+    """Randomly oversamples the minority class by duplicating samples until classes are balanced."""
+    majority = data[data[:,0] == 0]
     minority = data[data[:,0] == 1]
-    n_needed = len(majortiy) - len(minority)
+    n_needed = len(majority) - len(minority)
     if n_needed > 0:
         indices = np.random.choice(len(minority), size=n_needed, replace=True)
         oversampled_minority = minority[indices]
@@ -129,22 +136,79 @@ def oversample_minority(data:np.ndarray) -> np.ndarray:
     else:
         return data
     
+def smote(data: np.ndarray, k: int = 5) -> np.ndarray:
+    """Applies SMOTE algorithm to generate synthetic samples for the minority class."""
+    majority = data[data[:, 0] == 0]
+    minority = data[data[:, 0] == 1]
 
+    # PART 2 - distance matrix (n_minority x n_minority)
+    dist = np.sqrt(((minority[:, np.newaxis] - minority) ** 2).sum(axis=2))
 
+    # k nearest neighbours (skip index 0 = self)
+    knn_indices = np.argsort(dist, axis=1)[:, 1:k+1]
 
+    # randomly pick one neighbour per sample
+    random_nn = np.array([np.random.choice(knn_indices[i]) for i in range(len(minority))])
+    neighbors = minority[random_nn]
+
+    # PART 3 - interpolate
+    gap = np.random.random((len(minority), 1))
+    synthetic = minority + gap * (neighbors - minority)
+
+    # PART 4 - pick n_needed synthetics
+    n_needed = len(majority) - len(minority)
+    if n_needed > 0:
+        indices = np.random.choice(len(synthetic), size=n_needed, replace=True)
+        oversampled = synthetic[indices]
+        return np.vstack((data, oversampled))
+    else:
+        return data
+
+def save_csv(headers: list, data: np.ndarray, filepath: str = "C:\\Users\\Lenovo\\Desktop\\HOPE\\creditsense\\data\\cleaned\\cs-training-cleaned.csv") -> None:
+    """Saves the processed dataset to a new CSV file."""
+    with open(filepath, 'w', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow(headers)
+        for row in data:
+            writer.writerow(row)
+            
 if __name__ == "__main__":
+    # 1. Load
     headers, data = load_csv(r"C:\Users\Lenovo\Desktop\HOPE\creditsense\data\raw\cs-training.csv")
+    
+    # 2. Inspect raw
+    print_csv(headers, data)
+    print_stats(headers, data)
+    
+    # 3. Clean
     headers, data = clean_data(headers, data)
-    analyze_class_imbalance(headers, data)      # ✅ added
-
-    print(f"Original MonthlyIncome range : {data[:, 5].min():.2f} to {data[:, 5].max():.2f}")
+    
+    # 4. Analyse imbalance
+    analyze_class_imbalance(headers, data)
+    
+    # 5. Normalise
     minmax_data = minmax_normalize(data)
-    print(f"After min-max               : {minmax_data[:, 5].min():.2f} to {minmax_data[:, 5].max():.2f}")
-    zscore_data = zscore(data)
-    print(f"After zscore                : {zscore_data[:, 5].min():.2f} to {zscore_data[:, 5].max():.2f}")
-
+    zscore_data = z_score(data)
+    print(f"Min-max range  : {minmax_data[:, 5].min():.2f} to {minmax_data[:, 5].max():.2f}")
+    print(f"Zscore range   : {zscore_data[:, 5].min():.2f} to {zscore_data[:, 5].max():.2f}")
+    
+    # 6. Random oversample
     balanced = oversample_minority(data)
-    print(f"\nAfter oversampling:")           # ✅ indented
+    print(f"\n--- Random Oversampling ---")
     print(f"  Class 0 : {int(np.sum(balanced[:, 0] == 0))}")
     print(f"  Class 1 : {int(np.sum(balanced[:, 0] == 1))}")
     print(f"  Total   : {len(balanced)}")
+    
+    # 7. SMOTE
+    print(f"\n--- SMOTE ---")
+    start = time.time()
+    balanced_smote = smote(data, k=5)
+    end = time.time()
+    print(f"  Time taken : {end - start:.2f} seconds")
+    print(f"  Class 0    : {int(np.sum(balanced_smote[:, 0] == 0))}")
+    print(f"  Class 1    : {int(np.sum(balanced_smote[:, 0] == 1))}")
+    print(f"  Total      : {len(balanced_smote)}")
+    print(f"✔ SMOTE complete")
+    #8. Save cleaned data
+    save_csv(headers, balanced_smote)
+    print(f"✔ Cleaned dataset saved to 'data/cleaned/cs-training-cleaned.csv'")
