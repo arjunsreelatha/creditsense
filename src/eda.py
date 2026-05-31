@@ -34,5 +34,72 @@ def eda_correlation(filepath:str) -> None:
     headers, data = load_csv(filepath)
     eda_correlation_matrix(headers, data)
 
+def eda_feature_distribution(filepath:str) -> None:
+    """loads dataset and visualises the distribution of each feature by target class"""
+    headers, data = load_csv(filepath)
+    target = data[:,0].astype(int)
+    features = data[:,1:]
+    feat_names = headers[1:]
+   
+    for i in range(features.shape[1]):
+        vals0 = features[target == 0,i]
+        vals1 = features[target == 1,i]
+        plt.figure(figsize=(8,6))
+        plt.hist(vals0,bins = 30,alpha = 0.5,color = "blue",label = "No Default")
+        plt.hist(vals1,bins = 30,alpha = 0.5,color = "red",label = "Default")
+        plt.axvline(np.mean(vals0),color = "blue",linestyle = "dashed",linewidth = 1)
+        plt.axvline(np.mean(vals1),color = "red",linestyle = "dashed",linewidth = 1)
+        plt.title(f"Distribution of {feat_names[i]} by Target Class")
+        plt.xlabel(feat_names[i])
+        plt.ylabel("Density")
+        plt.legend()
+        plt.tight_layout()
+        plt.savefig(f"C:\\Users\\Lenovo\\Desktop\\HOPE\\creditsense\\results\\{feat_names[i]}_distribution.png")
+        plt.show()  
+        plt.close()  
+def eda_variance_ranking(filepath:str) -> None:
+    """loads dataset and rank features by variance"""
+    headers,data = load_csv(filepath)
+    features = data[:,1:]
+    feat_names = headers[1:]
+
+    variances = np.var(features,axis = 0)
+
+    pairs = list(zip(feat_names,variances))
+    pairs.sort(key = lambda x: x[1],reverse = True)
+    print("\nFeature Variance Ranking:")
+    print(f"{'feature':40} {'variance':>10}")
+    for feature, variance in pairs:
+        print(f"{feature:40} {variance:>10.4f}")
+
+def eda_variance_per_class(filepath:str) -> None:
+    """loads dataset and rank features by variance per class"""
+    headers,data = load_csv(filepath)
+    target = data[:,0].astype(int)
+    features = data[:,1:]
+    feat_names = headers[1:]
+
+    variances_0 = np.var(features[target == 0],axis = 0)
+    variances_1 = np.var(features[target == 1],axis = 0)
+
+    pairs_0 = list(zip(feat_names,variances_0))
+    pairs_1 = list(zip(feat_names,variances_1))
+
+    pairs_0.sort(key = lambda x: x[1],reverse = True)
+    pairs_1.sort(key = lambda x: x[1],reverse = True)
+
+    print("\nFeature Variance Ranking for Class 0 (No Default):")
+    print(f"{'feature':40} {'variance':>10}")
+    for feature, variance in pairs_0:
+        print(f"{feature:40} {variance:>10.4f}")
+
+    print("\nFeature Variance Ranking for Class 1 (Default):")
+    print(f"{'feature':40} {'variance':>10}")
+    for feature, variance in pairs_1:
+        print(f"{feature:40} {variance:>10.4f}")
+
 if __name__ == "__main__":
-    eda_correlation(r"C:\Users\Lenovo\Desktop\HOPE\creditsense\data\cleaned\cs-training-cleaned.csv")    
+    filepath = r"C:\Users\Lenovo\Desktop\HOPE\creditsense\data\cleaned\cs-training-cleaned.csv"
+    
+    
+    eda_variance_per_class(filepath)
