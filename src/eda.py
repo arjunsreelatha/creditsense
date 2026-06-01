@@ -98,8 +98,32 @@ def eda_variance_per_class(filepath:str) -> None:
     for feature, variance in pairs_1:
         print(f"{feature:40} {variance:>10.4f}")
 
+def eda_top5_features(filepath: str) -> None:
+    """
+    Rank features by absolute Pearson correlation with the target.
+    Plot top 5 as a horizontal bar chart sorted by correlation strength.
+    """
+    headers,data = load_csv(filepath)
+    target = data[:,0].astype(int)
+    features = data[:,1:]
+    feat_names = headers[1:]
+    corr_matrix = eda_pearson_corrcoef(data)
+    target_corr = corr_matrix[0,1:]
+    abs_corr = np.abs(target_corr)
+    top5_indices = np.argsort(abs_corr)[-5:]
+    top5_features = [feat_names[i] for i in top5_indices]
+    top5_corr = target_corr[top5_indices]
+    plt.figure(figsize=(8,6))
+    bars = plt.barh(top5_features, top5_corr, color=['red' if c < 0 else 'blue' for c in top5_corr])
+    plt.axvline(0, color='black', linewidth=0.8, linestyle='--')
+    plt.xlabel("Pearson Correlation with Target")
+    plt.title("Top 5 Features by Absolute Correlation with Target")
+    plt.tight_layout()
+    plt.savefig(f"C:\\Users\\Lenovo\\Desktop\\HOPE\\creditsense\\results\\top5_features.png")
+    plt.show()
+    plt.close()
+
 if __name__ == "__main__":
     filepath = r"C:\Users\Lenovo\Desktop\HOPE\creditsense\data\cleaned\cs-training-cleaned.csv"
     
-    
-    eda_variance_per_class(filepath)
+    eda_top5_features(filepath)
