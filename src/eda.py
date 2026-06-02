@@ -1,5 +1,5 @@
 import numpy as np
-import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt  # type: ignore[import]
 from data_pipeline import load_csv
 
 def eda_pearson_corrcoef(X:np.ndarray)->np.ndarray:
@@ -10,7 +10,7 @@ def eda_pearson_corrcoef(X:np.ndarray)->np.ndarray:
     X_normalized = X_centered / stds
     corr_matrix = np.dot(X_normalized.T, X_normalized) / (X_normalized.shape[0] - 1)
     return corr_matrix
-
+    
 def eda_correlation_matrix(headers:list, data:np.ndarray) -> None:
     """compute and visualie the coreelation matrix and heatmap for a dataset"""
     features = data[:, 1:]  # Exclude target variable
@@ -57,6 +57,7 @@ def eda_feature_distribution(filepath:str) -> None:
         plt.savefig(f"C:\\Users\\Lenovo\\Desktop\\HOPE\\creditsense\\results\\{feat_names[i]}_distribution.png")
         plt.show()  
         plt.close()  
+
 def eda_variance_ranking(filepath:str) -> None:
     """loads dataset and rank features by variance"""
     headers,data = load_csv(filepath)

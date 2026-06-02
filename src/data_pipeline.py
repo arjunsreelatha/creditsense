@@ -1,8 +1,8 @@
-
-
 import numpy as np
 import csv
 import time
+
+import train
 
 def load_csv(filepath:str) -> tuple[list[str], np.ndarray]:
     """Loads a CSV file and returns headers and data as a numpy array."""
@@ -171,6 +171,22 @@ def save_csv(headers: list, data: np.ndarray, filepath: str = "C:\\Users\\Lenovo
         writer.writerow(headers)
         for row in data:
             writer.writerow(row)
+def train_test_split(data: np.ndarray, test_size: float = 0.2,
+                     shuffle: bool = True, random_state: int = 42) -> tuple:
+    """Splits dataset into X_train, X_test, y_train, y_test."""
+    if shuffle:
+        np.random.seed(random_state)
+        np.random.shuffle(data)
+
+    split_idx = int(len(data) * (1 - test_size))
+    train, test = data[:split_idx], data[split_idx:]
+
+    X_train, y_train = train[:, 1:], train[:, 0]
+    X_test,  y_test  = test[:, 1:],  test[:, 0]
+
+    return X_train, X_test, y_train, y_test
+
+    
             
 if __name__ == "__main__":
     # 1. Load
