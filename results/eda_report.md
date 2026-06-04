@@ -4,7 +4,7 @@
 This exploratory data analysis suggests that the strongest signals for default risk come from credit utilization and past-due behavior, while several other variables show weaker class separation. The attached plots indicate both predictive features and redundancy among some delinquency variables.
 
 ## Main patterns
-`RevolvingUtilizationOfUnsecuredLines` appears to be the strongest individual predictor in the visual analysis, with the default class shifted toward much higher values than the no-default class. The top-features chart also shows it has the largest absolute correlation with the target [1].
+`RevolvingUtilizationOfUnsecuredLines` appears to be the strongest individual predictor in the visual analysis, with the default class shifted toward much higher values than the no-default class. The top-features chart also shows it has the largest absolute correlation with the target, at approximately +0.52.
 
 Age also shows meaningful separation between classes. The no-default group is centered at older ages, while the default group appears younger on average, which matches the negative correlation shown in the top-features plot.
 
@@ -28,9 +28,21 @@ Some continuous features, especially utilization, debt ratio, and income, also a
 ## Modeling implications
 A first baseline model should likely prioritize `RevolvingUtilizationOfUnsecuredLines`, age, and the delinquency history variables, because those show the clearest separation and strongest target correlation in the plots.
 
-At the same time, the nearly duplicate delinquency variables should be handled carefully. Keeping all of them may not add much new information, so feature selection, regularization, or model-based importance checks would be useful next steps [6].
+At the same time, the nearly duplicate delinquency variables should be handled carefully. Keeping all of them may not add much new information, so feature selection, regularization, or model-based importance checks would be useful next steps.
+
+## Class imbalance findings
+The raw dataset contains approximately 93% no-default and 7% default cases — a significant imbalance. Three approaches were tested during training to understand the impact:
+
+**Original imbalanced data** achieved 93.3% accuracy but predicted only 52 defaults out of 2,020 actual defaults in the test set. This result is misleading — the model learned to predict the majority class almost exclusively and is not useful for identifying real defaulters.
+
+**Random oversampling** and **SMOTE** both produced balanced predictions closer to the true class distribution, with accuracy around 73–74% on the balanced test set. While this number looks lower, the model was actually attempting to identify defaulters rather than ignoring them.
+
+This confirms that accuracy is not a reliable metric for imbalanced credit risk data. AUC-ROC and F1 score will be used as the primary evaluation metrics going forward, as they properly account for performance across both classes.
+
+## Logistic regression baseline
+After z-score normalisation and SMOTE balancing, logistic regression achieved a final binary cross-entropy loss of 0.527 and accuracy of 74.9% on the held-out test set. Probability scores ranged from 0.07 to 0.99, confirming the model is using the full prediction range rather than collapsing to one class.
+
+The relatively modest accuracy is expected for a linear model on this dataset. The relationship between features and default risk is non-linear — particularly for delinquency counts and utilization — which a logistic regression cannot fully capture with a straight decision boundary. The decision tree built in Week 8 is expected to improve on this baseline by handling non-linear splits directly.
 
 ## Model selection note
-The three late-payment features appear highly correlated, so they may cause multicollinearity and will be evaluated for possible removal during model training.
-
-After comparing the AUC-ROC scores, the model with the higher score was selected as the better classifier.
+The three late-payment features appear highly correlated and may cause multicollinearity. They will be evaluated for possible removal during model training based on their impact on AUC-ROC score. The model with the higher AUC-ROC after this evaluation will be selected as the better classifier.

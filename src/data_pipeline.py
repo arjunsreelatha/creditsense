@@ -2,7 +2,7 @@ import numpy as np
 import csv
 import time
 
-import train
+
 
 def load_csv(filepath:str) -> tuple[list[str], np.ndarray]:
     """Loads a CSV file and returns headers and data as a numpy array."""
