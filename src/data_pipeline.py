@@ -203,28 +203,4 @@ if __name__ == "__main__":
     analyze_class_imbalance(headers, data)
     
     # 5. Normalise
-    minmax_data = minmax_normalize(data)
-    zscore_data = z_score(data)
-    print(f"Min-max range  : {minmax_data[:, 5].min():.2f} to {minmax_data[:, 5].max():.2f}")
-    print(f"Zscore range   : {zscore_data[:, 5].min():.2f} to {zscore_data[:, 5].max():.2f}")
-    
-    # 6. Random oversample
-    balanced = oversample_minority(data)
-    print(f"\n--- Random Oversampling ---")
-    print(f"  Class 0 : {int(np.sum(balanced[:, 0] == 0))}")
-    print(f"  Class 1 : {int(np.sum(balanced[:, 0] == 1))}")
-    print(f"  Total   : {len(balanced)}")
-    
-    # 7. SMOTE
-    print(f"\n--- SMOTE ---")
-    start = time.time()
-    balanced_smote = smote(data, k=5)
-    end = time.time()
-    print(f"  Time taken : {end - start:.2f} seconds")
-    print(f"  Class 0    : {int(np.sum(balanced_smote[:, 0] == 0))}")
-    print(f"  Class 1    : {int(np.sum(balanced_smote[:, 0] == 1))}")
-    print(f"  Total      : {len(balanced_smote)}")
-    print(f"✔ SMOTE complete")
-    #8. Save cleaned data
-    save_csv(headers, balanced_smote)
-    print(f"✔ Cleaned dataset saved to 'data/cleaned/cs-training-cleaned.csv'")
+   

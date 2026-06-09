@@ -1,0 +1,2 @@
+experiment,model,accuracy,precision,recall,f1,tn,fp,fn,tp,roc_auc
+oversampled,xgboost,0.805271,0.826420,0.773786,0.799238,24625,4800,6681,22853,0.891108

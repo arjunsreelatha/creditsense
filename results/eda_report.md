@@ -46,3 +46,7 @@ The relatively modest accuracy is expected for a linear model on this dataset. T
 
 ## Model selection note
 The three late-payment features appear highly correlated and may cause multicollinearity. They will be evaluated for possible removal during model training based on their impact on AUC-ROC score. The model with the higher AUC-ROC after this evaluation will be selected as the better classifier.
+
+Implemented Accuracy, Precision, Recall, F1-Score, and ROC-AUC from scratch using NumPy. ROC-AUC implementation was validated against scikit-learn and produced matching results within numerical precision.
+error = 5.8e-08
+
