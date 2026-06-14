@@ -2,7 +2,7 @@ import csv
 import numpy as np
 import pandas as pd
 
-# ── IEEE-CIS columns we actually need ────────────────────────────────────────
+#columns we need from the IEEE-CIS dataset
 USECOLS = ["TransactionID", "isFraud", "TransactionDT", "TransactionAmt", "card1", "C1", "D1"]
 
 # Velocity window: 1 hour in seconds
@@ -21,7 +21,6 @@ def load_ieee_cis(filepath: str) -> tuple[list[str], np.ndarray]:
     print(f"✔ Loaded IEEE-CIS: {data.shape[0]} transactions, {data.shape[1]} columns.")
     return headers, data
 
-"""other velocity implementations I tried (all too slow):"""
 
 def compute_velocity(data: np.ndarray, headers: list) -> np.ndarray:
     """
@@ -61,3 +60,79 @@ def compute_velocity(data: np.ndarray, headers: list) -> np.ndarray:
     return result
 
 
+def compute_amount_deviation(data: np.ndarray, headers: list) -> np.ndarray:
+    """
+    Amount deviation: z-score of transaction amount vs card's historical average.
+    Higher deviation = more suspicious. Fully vectorized via pandas groupby.
+    """
+    card1_idx = headers.index("card1")
+    amt_idx   = headers.index("TransactionAmt")
+
+    df = pd.DataFrame({
+        "card1":  data[:, card1_idx],
+        "amount": data[:, amt_idx]
+    })
+
+    # Vectorized groupby transform — no loops
+    group_mean = df.groupby("card1")["amount"].transform("mean")
+    group_std  = df.groupby("card1")["amount"].transform("std").fillna(0)
+
+    deviation = (df["amount"] - group_mean) / (group_std + 1e-8)
+
+    print(f"✔ Amount deviation computed. Mean: {deviation.mean():.2f}, Std: {deviation.std():.2f}")
+    return deviation.to_numpy()
+
+
+def compute_balance_ratio(data: np.ndarray, headers: list) -> np.ndarray:
+    """
+    Balance ratio: C1 (addresses linked to card) normalized to 0–1.
+    High C1 = card linked to many addresses = suspicious.
+    """
+    c1_idx = headers.index("C1")
+    c1     = np.where(np.isnan(data[:, c1_idx]), 0, data[:, c1_idx])
+
+    max_c1 = np.nanmax(c1)
+    if max_c1 == 0:
+        return np.zeros(len(data))
+
+    balance_ratio = c1 / max_c1
+
+    print(f"✔ Balance ratio computed. Mean: {balance_ratio.mean():.4f}, Max: {balance_ratio.max():.4f}")
+    return balance_ratio
+
+
+def build_fraud_features(filepath: str) -> tuple[np.ndarray, np.ndarray, list]:
+    """
+    Master function. Loads IEEE-CIS, computes all three fraud features.
+
+    Returns:
+        X            : np.ndarray (n, 3) — [velocity, amount_deviation, balance_ratio]
+        y            : np.ndarray (n,)  — isFraud labels
+        feature_names: list of strings
+    """
+    headers, data = load_ieee_cis(filepath)
+
+    velocity         = compute_velocity(data, headers)
+    amount_deviation = compute_amount_deviation(data, headers)
+    balance_ratio    = compute_balance_ratio(data, headers)
+
+    X = np.column_stack((velocity, amount_deviation, balance_ratio))
+    y = data[:, headers.index("isFraud")]
+
+    feature_names = ["velocity", "amount_deviation", "balance_ratio"]
+
+    print(f"\n✔ Fraud feature matrix built: {X.shape}")
+    print(f"  Fraud rate: {y.mean() * 100:.2f}%")
+
+    return X, y, feature_names
+
+
+if __name__ == "__main__":
+    FILEPATH = r"C:\Users\Lenovo\Desktop\HOPE\creditsense\data\raw\train_transaction.csv"
+
+    X, y, feature_names = build_fraud_features(FILEPATH)
+
+    print("\n--- Sample (first 5 rows) ---")
+    print(f"{'velocity':>15} {'amount_dev':>15} {'balance_ratio':>15} {'label':>8}")
+    for i in range(min(5, len(X))):
+        print(f"{X[i,0]:>15.4f} {X[i,1]:>15.4f} {X[i,2]:>15.4f} {int(y[i]):>8}")
