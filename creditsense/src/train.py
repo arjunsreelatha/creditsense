@@ -2,6 +2,10 @@ import numpy as np
 import pandas as pd
 import joblib
 import os
+from pathlib import Path
+
+# Project root (two levels up from src/)
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
 from data_pipeline import load_csv, train_test_split
 from metrics import calculate_metrics, roc_auc
@@ -13,11 +17,11 @@ from alert_engine import get_alert_metadata
 from explainability import explain_credit_score, explain_fraud_score, explain_verdict
 
 # ── File paths ────────────────────────────────────────────────────────────────
-CREDIT_DATA_PATH = r"C:\Users\Lenovo\Desktop\HOPE\creditsense\data\raw\cs-training.csv"
-FRAUD_DATA_PATH  = r"C:\Users\Lenovo\Desktop\HOPE\creditsense\data\raw\train_transaction.csv"
+CREDIT_DATA_PATH = str(PROJECT_ROOT / "data" / "raw" / "cs-training.csv")
+FRAUD_DATA_PATH  = str(PROJECT_ROOT / "data" / "raw" / "train_transaction.csv")
 
 # ── Saved model paths ─────────────────────────────────────────────────────────
-MODEL_DIR = r"C:\Users\Lenovo\Desktop\HOPE\creditsense\models"
+MODEL_DIR = str(PROJECT_ROOT / "models")
 CREDIT_MODEL_PATH  = os.path.join(MODEL_DIR, "credit_model.joblib")
 FRAUD_MODEL_PATH   = os.path.join(MODEL_DIR, "fraud_model.joblib")
 CREDIT_XTRAIN_PATH = os.path.join(MODEL_DIR, "credit_xtrain.joblib")  # SHAP background data

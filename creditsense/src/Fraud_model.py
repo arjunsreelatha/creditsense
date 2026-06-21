@@ -1,4 +1,8 @@
 import numpy as np
+from pathlib import Path
+
+# Project root (two levels up from src/)
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
 from xgboost import XGBClassifier
 from fraud_features import build_fraud_features
 from data_pipeline import train_test_split
@@ -59,7 +63,7 @@ class FraudModel:
 
 
 if __name__ == "__main__":
-    FILEPATH = r"C:\Users\Lenovo\Desktop\HOPE\creditsense\data\raw\train_transaction.csv"
+    FILEPATH = str(PROJECT_ROOT / "data" / "raw" / "train_transaction.csv")
 
     print("Building fraud features...")
     X, y, feature_names = build_fraud_features(FILEPATH)

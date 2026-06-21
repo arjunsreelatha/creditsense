@@ -3,6 +3,10 @@ from metrics import calculate_metrics,roc_auc
 import numpy as np
 from data_pipeline import load_csv, train_test_split
 from sklearn.metrics import roc_auc_score
+from pathlib import Path
+
+# Project root (two levels up from src/)
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
 def clean_data_for_xgboost(headers: list, data: np.ndarray) -> tuple[list[str], np.ndarray]:
     data = data.copy()
@@ -87,7 +91,7 @@ class XGBoostClassifier:
 if __name__ ==  "__main__":
    
  
-    headers, data = load_csv(r"C:\Users\Lenovo\Desktop\HOPE\creditsense\data\raw\cs-training.csv")
+    headers, data = load_csv(str(PROJECT_ROOT / "data" / "raw" / "cs-training.csv"))
     feature_engineering(headers,data)
     headers, data = clean_data_for_xgboost(headers, data)
     X_train, X_test, y_train, y_test = train_test_split(data, test_size=0.265, shuffle=True, random_state=42)

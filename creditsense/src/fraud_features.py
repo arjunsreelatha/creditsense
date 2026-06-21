@@ -1,6 +1,10 @@
 import csv
 import numpy as np
 import pandas as pd
+from pathlib import Path
+
+# Project root (two levels up from src/)
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
 #columns we need from the IEEE-CIS dataset
 USECOLS = ["TransactionID", "isFraud", "TransactionDT", "TransactionAmt", "card1", "C1", "D1"]
@@ -128,7 +132,7 @@ def build_fraud_features(filepath: str) -> tuple[np.ndarray, np.ndarray, list]:
 
 
 if __name__ == "__main__":
-    FILEPATH = r"C:\Users\Lenovo\Desktop\HOPE\creditsense\data\raw\train_transaction.csv"
+    FILEPATH = str(PROJECT_ROOT / "data" / "raw" / "train_transaction.csv")
 
     X, y, feature_names = build_fraud_features(FILEPATH)
 
