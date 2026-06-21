@@ -50,3 +50,32 @@ The three late-payment features appear highly correlated and may cause multicoll
 Implemented Accuracy, Precision, Recall, F1-Score, and ROC-AUC from scratch using NumPy. ROC-AUC implementation was validated against scikit-learn and produced matching results within numerical precision.
 error = 5.8e-08
 
+
+# Fraud Model — v1 Results & v2 Plan
+
+## v1 Results (current)
+- Features: velocity, amount_deviation, balance_ratio (3 only)
+- Accuracy: 0.7495
+- Precision: 0.0693  ← weak
+- Recall: 0.4965
+- AUC: 0.6857  ← decent but not strong (0.85+ is good for fraud)
+- balance_ratio alone carries 64% of feature importance — model is leaning on one weak signal
+
+## Why v1 is weak
+Three features aren't enough signal. Not a model problem — XGBoost is fine.
+It's a feature problem.
+
+## v2 Plan — add these columns to fraud_features.py
+| Column | What it is | Why it helps |
+|---|---|---|
+| D15 | days since last transaction (diff from D1) | Strong known fraud signal |
+| addr1 | billing address | Address mismatch = suspicious |
+| card2, card4 | card type/category | Different card types = different fraud rates |
+| dist1 | distance between billing/shipping | Large distance = classic fraud signal |
+
+Expected result: AUC 0.68 → ~0.75-0.80+
+
+## Decision
+- v1 is enough for June 20 idea submission (idea stage, not model stage)
+- Improve to v2 in Phase 2/3 (after shortlist, before prototype deadline July 26)
+- Don't touch model type — XGBoost stays. Only add features.
