@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Computer Architecture — Syllabus Tracker</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app">
+
+    <div class="header">
+      <h1>Computer architecture — syllabus tracker</h1>
+      <p>Track your progress across all four units. Click any topic to mark it as done.</p>
+      <div class="progress-bar-outer">
+        <div class="progress-bar-inner" id="main-bar" style="width:0%"></div>
+      </div>
+      <div class="progress-label">
+        <span id="main-label">0 of 0 topics completed</span>
+        <button class="reset-btn" onclick="resetAll()">Reset all</button>
+      </div>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-label">Total topics</div>
+        <div class="stat-val" id="s-total">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Completed</div>
+        <div class="stat-val" id="s-done">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Remaining</div>
+        <div class="stat-val" id="s-rem">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Progress</div>
+        <div class="stat-val" id="s-pct">0%</div>
+      </div>
+    </div>
+
+    <div id="units-container"></div>
+
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
