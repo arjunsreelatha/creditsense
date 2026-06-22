@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CreditSense — Identity Trust Verdict</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600;700&display=swap');
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: #0E1116;
+    color: #E8EAED;
+    font-family: 'Inter', -apple-system, sans-serif;
+    padding: 40px 24px;
+  }
+  .shell { max-width: 1100px; margin: 0 auto; }
+
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 32px;
+    border-bottom: 1px solid #2A3140;
+    padding-bottom: 24px;
+  }
+  .eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.15em;
+    color: #F0A030;
+    margin-bottom: 8px;
+  }
+  h1 { font-size: 28px; font-weight: 600; margin: 0; color: #F4F5F7; }
+  .subtitle { font-size: 14px; color: #8B93A1; margin-top: 8px; }
+
+  #sampleBtn {
+    background: transparent;
+    border: 1px solid #2A3140;
+    color: #8B93A1;
+    padding: 8px 14px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-family: 'JetBrains Mono', monospace;
+    cursor: pointer;
+  }
+  #sampleBtn:hover { border-color: #F0A030; color: #F0A030; }
+
+  .grid {
+    display: grid;
+    grid-template-columns: 1.3fr 1fr;
+    gap: 24px;
+  }
+  @media (max-width: 900px) {
+    .grid { grid-template-columns: 1fr; }
+  }
+
+  .form-col { display: flex; flex-direction: column; gap: 24px; }
+
+  .section-block {
+    background: #151A22;
+    border: 1px solid #2A3140;
+    border-radius: 10px;
+    padding: 20px;
+  }
+  .section-title {
+    font-size: 13px;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.08em;
+    color: #8B93A1;
+    text-transform: uppercase;
+    margin: 0 0 16px 0;
+  }
+  .field-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  label.field { display: flex; flex-direction: column; gap: 4px; }
+  .field-name { font-size: 12px; color: #A8B0BD; }
+  input[type="number"] {
+    background: #0E1116;
+    border: 1px solid #2A3140;
+    border-radius: 6px;
+    padding: 8px 10px;
+    color: #E8EAED;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    outline: none;
+    width: 100%;
+  }
+  input[type="number"]:focus { border-color: #F0A030; }
+
+  #submitBtn {
+    background: #F0A030;
+    color: #0E1116;
+    border: none;
+    border-radius: 8px;
+    padding: 14px 20px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  #submitBtn:hover { background: #F5B458; }
+  #submitBtn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+  .error-box {
+    background: rgba(232,85,78,0.12);
+    border: 1px solid #E8554E;
+    color: #E8554E;
+    padding: 12px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-family: 'JetBrains Mono', monospace;
+    display: none;
+  }
+
+  .result-col { position: sticky; top: 24px; align-self: flex-start; }
+
+  .placeholder {
+    background: #151A22;
+    border: 1px dashed #2A3140;
+    border-radius: 10px;
+    padding: 48px;
+    text-align: center;
+  }
+  .placeholder-icon { font-size: 32px; color: #2A3140; margin-bottom: 12px; }
+  .placeholder-text { color: #5A6373; font-size: 13px; }
+
+  .verdict-card {
+    background: #151A22;
+    border: 1px solid #2A3140;
+    border-radius: 12px;
+    padding: 24px;
+    display: none;
+  }
+  .alert-stamp {
+    display: inline-block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    padding: 6px 12px;
+    border-radius: 6px;
+    margin-bottom: 16px;
+  }
+  .score-row { display: flex; align-items: baseline; gap: 6px; margin-bottom: 12px; }
+  .score-number { font-family: 'JetBrains Mono', monospace; font-size: 48px; font-weight: 700; color: #F4F5F7; }
+  .score-max { font-family: 'JetBrains Mono', monospace; font-size: 18px; color: #5A6373; }
+
+  .gauge-track { height: 8px; background: #0E1116; border-radius: 4px; overflow: hidden; margin-bottom: 20px; }
+  .gauge-fill { height: 100%; border-radius: 4px; transition: width 0.4s ease; }
+
+  .message { font-size: 14px; color: #C5CAD3; margin-bottom: 4px; }
+  .action { font-size: 13px; color: #8B93A1; margin-bottom: 16px; }
+  .action-label { color: #5A6373; }
+
+  .divider { height: 1px; background: #2A3140; margin: 16px 0; }
+
+  .subscore-row { display: flex; justify-content: space-between; font-family: 'JetBrains Mono', monospace; font-size: 13px; margin-bottom: 6px; }
+  .subscore-label { color: #8B93A1; }
+  .subscore-value { color: #E8EAED; }
+
+  .summary-label { font-size: 12px; font-family: 'JetBrains Mono', monospace; color: #5A6373; letter-spacing: 0.08em; margin-bottom: 6px; }
+  .summary-text { font-size: 13px; color: #A8B0BD; line-height: 1.6; }
+
+  .factor-block { margin-top: 14px; padding-top: 14px; border-top: 1px solid #1C212B; }
+  .factor-title { font-size: 11px; font-family: 'JetBrains Mono', monospace; color: #F0A030; letter-spacing: 0.06em; margin-bottom: 4px; }
+  .factor-desc { font-size: 13px; color: #E8EAED; margin-bottom: 2px; }
+  .factor-value { font-size: 12px; color: #5A6373; font-family: 'JetBrains Mono', monospace; }
+
+  #apiUrlRow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: #5A6373;
+    margin-bottom: 20px;
+  }
+  #apiUrlRow input {
+    background: #151A22;
+    border: 1px solid #2A3140;
+    color: #8B93A1;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    width: 280px;
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <div id="apiUrlRow">
+    API endpoint: <input type="text" id="apiUrl" value="https://creditsense-api.onrender.com/predict">
+  </div>
+
+  <header>
+    <div>
+      <div class="eyebrow">CREDITSENSE</div>
+      <h1>Identity Trust Verdict</h1>
+      <p class="subtitle">Enter a borrower profile and transaction to compute a live trust score.</p>
+    </div>
+    <button id="sampleBtn" onclick="fillSample()">Fill sample data</button>
+  </header>
+
+  <div class="grid">
+    <div class="form-col">
+
+      <div class="section-block">
+        <h2 class="section-title">Borrower Profile</h2>
+        <div class="field-grid" id="creditFields"></div>
+      </div>
+
+      <div class="section-block">
+        <h2 class="section-title">Transaction</h2>
+        <div class="field-grid" id="transactionFields"></div>
+      </div>
+
+      <button id="submitBtn" onclick="submitForm()">Compute Trust Score</button>
+      <div class="error-box" id="errorBox"></div>
+    </div>
+
+    <div class="result-col">
+      <div class="placeholder" id="placeholder">
+        <div class="placeholder-icon">—</div>
+        <p class="placeholder-text">Verdict will appear here once you submit a profile.</p>
+      </div>
+
+      <div class="verdict-card" id="verdictCard">
+        <div class="alert-stamp" id="alertStamp"></div>
+        <div class="score-row">
+          <span class="score-number" id="scoreNumber">0</span>
+          <span class="score-max">/ 100</span>
+        </div>
+        <div class="gauge-track"><div class="gauge-fill" id="gaugeFill"></div></div>
+        <p class="message" id="message"></p>
+        <p class="action"><span class="action-label">Action: </span><span id="action"></span></p>
+        <div class="divider"></div>
+        <div class="subscore-row"><span class="subscore-label">Credit</span><span class="subscore-value" id="creditScore"></span></div>
+        <div class="subscore-row"><span class="subscore-label">Fraud</span><span class="subscore-value" id="fraudScore"></span></div>
+        <div class="divider"></div>
+        <p class="summary-label">Summary</p>
+        <p class="summary-text" id="summary"></p>
+        <div id="creditFactor"></div>
+        <div id="fraudFactor"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const CREDIT_FIELDS = [
+  { key: "RevolvingUtilizationOfUnsecuredLines", label: "Revolving utilization", hint: "0–1, credit used vs limit" },
+  { key: "age", label: "Age", hint: "years" },
+  { key: "NumberOfTime30-59DaysPastDueNotWorse", label: "Late 30–59 days", hint: "count" },
+  { key: "DebtRatio", label: "Debt ratio", hint: "monthly debt / income" },
+  { key: "MonthlyIncome", label: "Monthly income", hint: "currency" },
+  { key: "NumberOfOpenCreditLinesAndLoans", label: "Open credit lines", hint: "count" },
+  { key: "NumberOfTimes90DaysLate", label: "Late 90+ days", hint: "count" },
+  { key: "NumberRealEstateLoansOrLines", label: "Real estate loans", hint: "count" },
+  { key: "NumberOfTime60-89DaysPastDueNotWorse", label: "Late 60–89 days", hint: "count" },
+  { key: "NumberOfDependents", label: "Dependents", hint: "count" },
+  { key: "CombinedLate", label: "Combined late history", hint: "sum of all late counts" },
+  { key: "MonthlyDebt", label: "Monthly debt", hint: "currency" },
+  { key: "IncomePerPerson", label: "Income per person", hint: "currency" },
+  { key: "LogIncome", label: "Log income", hint: "log1p(income)" },
+];
+
+const TRANSACTION_FIELDS = [
+  { key: "velocity", label: "Velocity", hint: "transactions in last hour" },
+  { key: "amount_deviation", label: "Amount deviation", hint: "z-score vs card average" },
+  { key: "balance_ratio", label: "Balance ratio", hint: "linked addresses, 0–1" },
+];
+
+const SAMPLE = {
+  RevolvingUtilizationOfUnsecuredLines: "0.85",
+  age: "35",
+  "NumberOfTime30-59DaysPastDueNotWorse": "1",
+  DebtRatio: "0.6",
+  MonthlyIncome: "3000",
+  NumberOfOpenCreditLinesAndLoans: "5",
+  NumberOfTimes90DaysLate: "0",
+  NumberRealEstateLoansOrLines: "1",
+  "NumberOfTime60-89DaysPastDueNotWorse": "0",
+  NumberOfDependents: "2",
+  CombinedLate: "1",
+  MonthlyDebt: "1800",
+  IncomePerPerson: "1000",
+  LogIncome: "8.0",
+  velocity: "5",
+  amount_deviation: "3.2",
+  balance_ratio: "0.08",
+};
+
+const ALERT_STYLES = {
+  BLOCK:  { color: "#E8554E", glow: "rgba(232,85,78,0.18)" },
+  REVIEW: { color: "#F0A030", glow: "rgba(240,160,48,0.18)" },
+  ALLOW:  { color: "#3FB97F", glow: "rgba(63,185,127,0.18)" },
+};
+
+function renderFields(containerId, fields) {
+  const container = document.getElementById(containerId);
+  fields.forEach(field => {
+    const label = document.createElement("label");
+    label.className = "field";
+    label.innerHTML = `
+      <span class="field-name">${field.label}</span>
+      <input type="number" step="any" id="f_${field.key}" placeholder="${field.hint}">
+    `;
+    container.appendChild(label);
+  });
+}
+
+renderFields("creditFields", CREDIT_FIELDS);
+renderFields("transactionFields", TRANSACTION_FIELDS);
+
+function fillSample() {
+  [...CREDIT_FIELDS, ...TRANSACTION_FIELDS].forEach(field => {
+    const el = document.getElementById("f_" + field.key);
+    if (el) el.value = SAMPLE[field.key] ?? "";
+  });
+}
+
+async function submitForm() {
+  const btn = document.getElementById("submitBtn");
+  const errorBox = document.getElementById("errorBox");
+  errorBox.style.display = "none";
+  btn.disabled = true;
+  btn.textContent = "Scoring...";
+
+  const borrower_profile = {};
+  CREDIT_FIELDS.forEach(f => {
+    const val = parseFloat(document.getElementById("f_" + f.key).value);
+    borrower_profile[f.key] = isNaN(val) ? 0 : val;
+  });
+
+  const transaction = {};
+  TRANSACTION_FIELDS.forEach(f => {
+    const val = parseFloat(document.getElementById("f_" + f.key).value);
+    transaction[f.key] = isNaN(val) ? 0 : val;
+  });
+
+  const apiUrl = document.getElementById("apiUrl").value;
+
+  try {
+    const res = await fetch(apiUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ borrower_profile, transaction })
+    });
+
+    if (!res.ok) {
+      const errBody = await res.json().catch(() => ({}));
+      throw new Error(errBody.detail || `Request failed (${res.status})`);
+    }
+
+    const data = await res.json();
+    renderResult(data);
+
+  } catch (err) {
+    errorBox.textContent = err.message || "Could not reach the CreditSense API.";
+    errorBox.style.display = "block";
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Compute Trust Score";
+  }
+}
+
+function renderResult(result) {
+  document.getElementById("placeholder").style.display = "none";
+  const card = document.getElementById("verdictCard");
+  card.style.display = "block";
+
+  const style = ALERT_STYLES[result.alert_level] || ALERT_STYLES.REVIEW;
+
+  const stamp = document.getElementById("alertStamp");
+  stamp.textContent = result.alert_level;
+  stamp.style.color = style.color;
+  stamp.style.background = style.glow;
+
+  document.getElementById("scoreNumber").textContent = (result.trust_score ?? 0).toFixed(1);
+
+  const gauge = document.getElementById("gaugeFill");
+  const pct = Math.max(0, Math.min(100, result.trust_score || 0));
+  gauge.style.width = pct + "%";
+  gauge.style.background = style.color;
+
+  document.getElementById("message").textContent = result.message || "";
+  document.getElementById("action").textContent = result.action || "";
+
+  document.getElementById("creditScore").textContent =
+    result.credit_explanation?.credit_score?.toFixed(3) ?? "—";
+  document.getElementById("fraudScore").textContent =
+    result.fraud_explanation?.fraud_score?.toFixed(3) ?? "—";
+
+  document.getElementById("summary").textContent = result.summary || "";
+
+  const cf = result.credit_explanation?.top_factors?.[0];
+  document.getElementById("creditFactor").innerHTML = cf ? `
+    <div class="factor-block">
+      <p class="factor-title">TOP CREDIT FACTOR</p>
+      <p class="factor-desc">${cf.description}</p>
+      <p class="factor-value">value: ${cf.value} ${cf.direction ? "· " + cf.direction : ""}</p>
+    </div>` : "";
+
+  const ff = result.fraud_explanation?.top_factors?.[0];
+  document.getElementById("fraudFactor").innerHTML = ff ? `
+    <div class="factor-block">
+      <p class="factor-title">TOP FRAUD FACTOR</p>
+      <p class="factor-desc">${ff.description}</p>
+      <p class="factor-value">value: ${ff.value}</p>
+    </div>` : "";
+}
+</script>
+</body>
+</html>
